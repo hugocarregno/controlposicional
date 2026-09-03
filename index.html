@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Extremos</title>
+<style>
+  :root{
+    --ink: #10161a;
+    --bone: #efe7d8;
+    --bone-dim: #b9b0a0;
+    --teal: #2fa393;
+    --amber: #e2a44e;
+    --line: rgba(239,231,216,0.14);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    height:100%;
+    background: var(--ink);
+    color: var(--bone);
+    font-family: 'Instrument Sans', 'Space Grotesk', system-ui, sans-serif;
+    overflow: hidden;
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  #stage{
+    position:relative;
+    width:100%;
+    height:100%;
+    max-width:1100px;
+    max-height:720px;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(47,163,147,0.06), transparent 60%),
+      var(--ink);
+    display:flex;
+    flex-direction:column;
+    border-left:1px solid var(--line);
+    border-right:1px solid var(--line);
+  }
+
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding: 22px 28px 14px;
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+
+  h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 600;
+    font-style: italic;
+    font-size: clamp(22px, 3vw, 30px);
+    margin:0;
+    color: var(--bone);
+  }
+
+  h1 span{ font-style: normal; color: var(--teal); }
+
+  .controls{
+    display:flex;
+    gap: 10px;
+  }
+
+  button{
+    appearance:none;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--bone);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 9px 20px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  button:hover{ border-color: var(--teal); }
+
+  button.primary{
+    background: var(--teal);
+    color: var(--ink);
+    border-color: var(--teal);
+    font-weight: 600;
+  }
+  button.primary:hover{ background:#3fc0ad; }
+
+  #play{
+    position:relative;
+    flex:1;
+    display:flex;
+  }
+
+  .zone{
+    position:relative;
+    flex:1;
+    display:flex;
+    align-items:center;
+  }
+
+  .zone.left{ justify-content:flex-start; }
+  .zone.right{ justify-content:flex-end; }
+
+  .slot{
+    width: 220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height: 100%;
+  }
+
+  .zone.left .slot{ border-right:1px dashed var(--line); }
+  .zone.right .slot{ border-left:1px dashed var(--line); }
+
+  .word{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(30px, 5vw, 46px);
+    letter-spacing: 0.5px;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    text-align:center;
+  }
+
+  .word.show{ opacity: 1; transform: scale(1); }
+  .word.on-left{ color: var(--teal); }
+  .word.on-right{ color: var(--amber); }
+
+  #centerColumn{
+    width: 160px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-left:1px solid var(--line);
+    border-right:1px solid var(--line);
+  }
+
+  #head-ref{ width: 96px; opacity: 0.5; }
+
+  .overlay{
+    position:absolute;
+    inset:0;
+    background: rgba(16,22,26,0.94);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap: 20px;
+    text-align:center;
+    padding: 40px;
+    z-index: 5;
+  }
+  .overlay.hidden{ display:none; }
+
+  .overlay h2{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(26px, 4.5vw, 40px);
+    margin:0;
+    max-width: 520px;
+    line-height: 1.2;
+  }
+
+  .overlay p{
+    max-width: 440px;
+    color: var(--bone-dim);
+    font-size: 15px;
+    line-height: 1.6;
+    margin:0;
+  }
+
+  @media (max-width: 640px){
+    #centerColumn{ width: 90px; }
+    #head-ref{ width: 56px; }
+    .slot{ width: 130px; }
+    header{ padding: 16px 16px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <header>
+    <h1>EXTREMOS <span>·</span></h1>
+    <div class="controls">
+      <button id="pauseBtn">Pausar</button>
+      <button class="primary" id="restartBtn">Reiniciar</button>
+    </div>
+  </header>
+
+  <div id="play">
+
+    <div class="zone left">
+      <div class="slot" id="slotLeft"><div class="word on-left" id="wordLeft"></div></div>
+    </div>
+
+    <div id="centerColumn">
+      <div id="head-ref"></div>
+    </div>
+
+    <div class="zone right">
+      <div class="slot" id="slotRight"><div class="word on-right" id="wordRight"></div></div>
+    </div>
+
+    <div class="overlay" id="startOverlay">
+      <h2>Solo existen los extremos.</h2>
+      <p>
+        El nombre de una parte de la cabeza va a aparecer en el borde izquierdo o en el borde derecho, siempre a la altura del centro — nunca en el medio de la pantalla.
+        Se muestra 3 segundos, desaparece 1 segundo, y aparece la siguiente.
+      </p>
+      <button class="primary" id="startBtn">Empezar</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+
+  const PARTS = ['OJO','OREJA','CEJA','PÓMULO','SIEN','MENTÓN','FRENTE','NARIZ', 'PATILLA', 'PÁRPADO'];
+
+  const BONE = getComputedStyle(document.documentElement).getPropertyValue('--bone').trim();
+  document.getElementById('head-ref').innerHTML =
+    '<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M50 8 C 74 8, 88 30, 84 52 C 82 66, 74 76, 62 82 L62 92 L38 92 L38 82 C 26 76, 18 66, 16 52 C 12 30, 26 8, 50 8 Z" stroke="'+BONE+'" stroke-width="3" fill="none"/>' +
+    '<line x1="50" y1="8" x2="50" y2="92" stroke="'+BONE+'" stroke-width="2" stroke-dasharray="3 5" opacity="0.5"/>' +
+    '</svg>';
+
+  const wordLeft = document.getElementById('wordLeft');
+  const wordRight = document.getElementById('wordRight');
+  const startOverlay = document.getElementById('startOverlay');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  const SHOW_MS = 3000;
+  const HIDE_MS = 1000;
+
+  let running = false;
+  let paused = false;
+  let cycleTimeout = null;
+
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function clearWords(){
+    wordLeft.textContent = '';
+    wordRight.textContent = '';
+    wordLeft.classList.remove('show');
+    wordRight.classList.remove('show');
+  }
+
+  function showStep(){
+    if(!running || paused) return;
+    clearWords();
+
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const part = pick(PARTS);
+    const target = side === 'left' ? wordLeft : wordRight;
+    target.textContent = part;
+
+    void target.offsetWidth;
+    target.classList.add('show');
+
+    cycleTimeout = setTimeout(() => {
+      clearWords();
+      cycleTimeout = setTimeout(showStep, HIDE_MS);
+    }, SHOW_MS);
+  }
+
+  function start(){
+    startOverlay.classList.add('hidden');
+    running = true;
+    paused = false;
+    pauseBtn.textContent = 'Pausar';
+    clearTimeout(cycleTimeout);
+    showStep();
+  }
+
+  function togglePause(){
+    if(!running) return;
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Reanudar' : 'Pausar';
+    if(paused){
+      clearTimeout(cycleTimeout);
+    } else {
+      showStep();
+    }
+  }
+
+  startBtn.addEventListener('click', start);
+  restartBtn.addEventListener('click', start);
+  pauseBtn.addEventListener('click', togglePause);
+
+})();
+</script>
+
+</body>
+</html>
